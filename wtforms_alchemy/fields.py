@@ -60,13 +60,16 @@ class ModelFieldList(FieldList):
         id = '%s-%d' % (self.id, new_index)
         if hasattr(self, 'meta'):
             # WTForms 2.0
-            return self.unbound_field.bind(
+            field = self.unbound_field.bind(
                 form=None,
                 name=name,
                 prefix=self._prefix,
                 id=id,
                 _meta=self.meta
             )
+            field._field_list = self
+            field._parent = self
+            return field
         else:
             # WTForms 1.0
             return self.unbound_field.bind(
@@ -216,7 +219,7 @@ class QuerySelectField(SelectFieldBase):
         if self._object_list is None:
             query = (
                 self.query if self.query is not None
-                else self.query_factory()
+                else self.query_factory(self)
             )
             get_pk = self.get_pk
             self._object_list = list(
